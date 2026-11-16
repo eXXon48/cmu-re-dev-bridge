@@ -1,0 +1,15 @@
+{
+  "formatVersion": 1,
+  "name": "cmu-re-dev-bridge",
+  "version": "0.0.0",
+  "author": "CMU-Revised",
+  "targetCMU": "74.00.324A",
+  "category": "System mods",
+  "description": "Remote JS eval and knob keys for testing apps (developer mode)",
+  "minDaemon": "0.1.0",
+  "depends": "",
+  "conflicts": "",
+  "files": [
+    { "live": "ui/bridge.js", "payload": "payload/ui/bridge.js", "mode": "0644", "owner": "1000:1000", "type": "new", "apply": "whole-file" }
+  ]
+}
