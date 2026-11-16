@@ -22,7 +22,7 @@ jobs:
     permissions:
       contents: write
     env:
-      RVP_STORE_REV: 0000000000000000000000000000000000000000
+      RVP_STORE_REV: 79eb801c06332303bc01f40a60150ce8a98c96fa
     steps:
       - uses: actions/checkout@v4
 
