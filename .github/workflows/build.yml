@@ -41,7 +41,7 @@ jobs:
           rustup toolchain install
           cargo build --release --offline --bin rvp-pack
 
-      - name: Pack Revised Store package
+      - name: Pack dev bridge package
         run: |
           sh tools/mkpkg.sh "${GITHUB_REF_NAME#v}" store/target/release/rvp-pack "cmu-re-dev-bridge-${GITHUB_REF_NAME}.rvp"
           sha256sum "cmu-re-dev-bridge-${GITHUB_REF_NAME}.rvp" | tee "cmu-re-dev-bridge-${GITHUB_REF_NAME}.rvp.sha256"
