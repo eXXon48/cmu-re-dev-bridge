@@ -13,6 +13,6 @@ The store lists this package only in its Developer section, and installs it only
 
 ## Build
 
-Push a `vX.Y.Z` tag. CI packs `cmu-re-dev-bridge-vX.Y.Z.rvp` (unsigned) and attaches it to the release; the signed catalog (revised-catalog) lists it from there.
+Push a `vX.Y.Z` tag on `main` (prod release) or a `dev/vX.Y.Z` tag on `develop` (dev prerelease). CI checks that the tag sits on its branch, packs `cmu-re-dev-bridge-vX.Y.Z.rvp` (unsigned) and attaches it to the release; the signed catalog (revised-catalog) lists it from there (`catalog.list` for prod, `dev.list` for dev).
 
 Local: `tools/mkpkg.sh <version> <path to rvp-pack> <out.rvp>`.

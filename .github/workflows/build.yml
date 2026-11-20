@@ -2,22 +2,28 @@ name: build
 
 on:
   push:
-    branches: [ main ]
-    tags: [ 'v*' ]
+    branches: [ main, develop ]
+    # v* = prod release (on main); dev/v* = dev prerelease (on develop)
+    tags: [ 'v*', 'dev/v*' ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Syntax check (ES5 page script)
+        with:
+          persist-credentials: false
+      - name: Syntax check (ES5 page script), key replay test
         run: node --check pkg/payload/ui/bridge.js && node test/key.test.js
 
   release:
     needs: check
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/tags/dev/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -25,6 +31,21 @@ jobs:
       RVP_STORE_REV: 79eb801c06332303bc01f40a60150ce8a98c96fa
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0   # branch heads for the tag-on-branch check
+
+      - name: Tag sits on its branch
+        run: |
+          case "$GITHUB_REF_NAME" in
+            dev/v*) branch=develop; ver=${GITHUB_REF_NAME#dev/v} ;;
+            *)      branch=main;    ver=${GITHUB_REF_NAME#v} ;;
+          esac
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" "origin/$branch"; then
+            echo "::error::tag $GITHUB_REF_NAME is not on $branch"
+            exit 1
+          fi
+          echo "VER=$ver" >> "$GITHUB_ENV"
 
       - name: Checkout store (rvp-pack source)
         uses: actions/checkout@v4
@@ -43,12 +64,13 @@ jobs:
 
       - name: Pack dev bridge package
         run: |
-          sh tools/mkpkg.sh "${GITHUB_REF_NAME#v}" store/target/release/rvp-pack "cmu-re-dev-bridge-${GITHUB_REF_NAME}.rvp"
-          sha256sum "cmu-re-dev-bridge-${GITHUB_REF_NAME}.rvp" | tee "cmu-re-dev-bridge-${GITHUB_REF_NAME}.rvp.sha256"
+          sh tools/mkpkg.sh "$VER" store/target/release/rvp-pack "cmu-re-dev-bridge-v$VER.rvp"
+          sha256sum "cmu-re-dev-bridge-v$VER.rvp" | tee "cmu-re-dev-bridge-v$VER.rvp.sha256"
 
       - name: Attach package to release
         uses: softprops/action-gh-release@v2
         with:
+          prerelease: ${{ startsWith(github.ref, 'refs/tags/dev/v') }}
           files: |
-            cmu-re-dev-bridge-${{ github.ref_name }}.rvp
-            cmu-re-dev-bridge-${{ github.ref_name }}.rvp.sha256
+            cmu-re-dev-bridge-v${{ env.VER }}.rvp
+            cmu-re-dev-bridge-v${{ env.VER }}.rvp.sha256
