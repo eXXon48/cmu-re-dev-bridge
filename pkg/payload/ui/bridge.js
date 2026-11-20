@@ -11,7 +11,7 @@
  *   js:<code>   global eval in the HMI page; the result goes back to the daemon log
  *               as {control:"eval",action:"ok|err",value,ts}
  *   open        show the store overlay without the Apps menu
- *   <keyCode>   replay a knob key as keydown (e.g. 77)
+ *   <keyCode>   replay a knob key press: keydown, keyup 80 ms later (e.g. 77)
  * Also: window.__rvpTap(x, y) = mousedown/mouseup/click at screen x,y.
  */
 (function () {
@@ -19,6 +19,7 @@
 
   var TAG = "[revised-dev-bridge]";
   var STORE_KEY = "cmu-re-store/store";
+  var KEY_HOLD_MS = 80;
   function logMsg(m) {
     try { if (window.log && log.info) log.info(TAG + " " + m); } catch (e) {}
   }
@@ -36,12 +37,20 @@
   }
 
   // Generic Event + keyCode expando: Presto-safe (no KeyboardEvent ctor / initKeyEvent needed).
+  function fireKey(type, k) {
+    var e = document.createEvent("Events");
+    e.initEvent(type, true, true);
+    e.keyCode = k; e.which = k;
+    (document.activeElement || document.body).dispatchEvent(e);
+  }
+  // A press = keydown, then keyup: stock Multicontroller.js holds the button (_btnHeld)
+  // until keyup and fires select (13) on keyup, so keydown alone blocks every later key.
   function synthKey(k) {
     try {
-      var e = document.createEvent("Events");
-      e.initEvent("keydown", true, true);
-      e.keyCode = k; e.which = k;
-      (document.activeElement || document.body).dispatchEvent(e);
+      fireKey("keydown", k);
+      setTimeout(function () {
+        try { fireKey("keyup", k); } catch (err) { logMsg("remote keyup failed: " + err); }
+      }, KEY_HOLD_MS);
       logMsg("remote key " + k);
     } catch (err) { logMsg("remote key failed: " + err); }
   }

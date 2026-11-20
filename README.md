@@ -4,7 +4,7 @@ Dev-only package for the Revised Store on the CMU150. It lets a developer drive 
 
 - `js:<code>` evaluates JavaScript in the HMI page; the result goes to the daemon log as `{"control":"eval",...}`
 - `open` shows the store overlay
-- a number (e.g. `77`) replays a knob key
+- a number (e.g. `77`) replays a knob key press (keydown, then keyup 80 ms later)
 - `window.__rvpTap(x, y)` clicks at a screen position
 
 Write a line to the daemon's ctl FIFO to send one: `echo 'js:1+1' > /tmp/rvp-ctl`.

@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Syntax check (ES5 page script)
-        run: node --check pkg/payload/ui/bridge.js
+        run: node --check pkg/payload/ui/bridge.js && node test/key.test.js
 
   release:
     needs: check
